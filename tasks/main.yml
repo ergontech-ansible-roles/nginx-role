@@ -1,0 +1,20 @@
+---
+
+- name: Add NGINX PPA
+  apt_repository:
+    repo: "ppa:nginx/stable"
+    update_cache: yes
+
+- name: Install NGINX package
+  apt:
+    name: nginx
+    state: present
+  tags: nginx
+
+- name: Ensure log dir exists
+  file:
+    name: /usr/share/nginx/logs
+    state: directory
+  tags: nginx
+
+- include: configure.yml
