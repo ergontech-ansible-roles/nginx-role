@@ -1,19 +1,7 @@
-# Configuration File - Nginx Server Configs
-# http://nginx.org/en/docs/dirindex.html
+# {{ ansible_managed }}
 
-# Run as a unique, less privileged user for security reasons.
-# Default: nobody nobody
 user www-data www-data;
-
-# Sets the worker threads to the number of CPU cores available in the system for best performance.
-# Should be > the number of CPU cores.
-# Maximum number of connections = worker_processes * worker_connections
-# Default: 1
 worker_processes auto;
-
-# Maximum number of open files per worker process.
-# Should be > worker_connections.
-# Default: no limit
 worker_rlimit_nofile 8192;
 
 events {
@@ -27,7 +15,7 @@ events {
 # Log errors and warnings to this file
 # This is only used when you don't override it on a server{} level
 # Default: logs/error.log error
-error_log  logs/error.log warn;
+error_log  /var/log/nginx/error.log warn;
 
 # The file storing the process ID of the main process
 # Default: nginx.pid
@@ -65,7 +53,7 @@ http {
   # Log access to this file
   # This is only used when you don't override it on a server{} level
   # Default: logs/access.log combined
-  access_log logs/access.log main;
+  access_log /var/log/nginx/access.log main;
 
   # How long to allow each connection to stay idle.
   # Longer values are better for each individual client, particularly for SSL,
@@ -79,7 +67,9 @@ http {
   # this option should be disabled as ZFS's ARC caches
   # frequently used files in RAM by default.
   # Default: off
-  sendfile        on;
+  sendfile        {{ nginx_sendfile }};
+
+  client_max_body_size {{ nginx_max_body_size }};
 
   # Don't send out partial frames; this increases throughput
   # since TCP frames are filled up before being sent out.
@@ -148,6 +138,11 @@ http {
   # for the check. It is best if you enable this in a location{} block for
   # a specific directory, or on an individual server{} level.
   # gzip_static on;
+
+  map $http_x_forwarded_proto $is_https {
+    default "";
+    https "on";
+  }
 
   # Include files in the sites-enabled folder. server{} configuration files should be
   # placed in the sites-available folder, and then the configuration should be enabled
