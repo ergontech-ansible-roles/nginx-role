@@ -1,13 +1,15 @@
 # {{ ansible_managed }}
 
 server {
-    listen      {{ nginx_listen_port }};
-    server_name {{ fqdn if fqdn }} {{ ansible_default_ipv4.address }};
+    listen      {{ nginx_listen_port|default(80) }};
+    server_name {{ fqdn if fqdn }} {{ ansible_default_ipv4.address|default('') }};
 
-    access_log /var/log/nginx/{{ domain }}.access.log;
-    error_log  /var/log/nginx/{{ domain }}.error.log;
+    access_log /var/log/nginx/{{ domain|default('default') }}.access.log;
+    error_log  /var/log/nginx/{{ domain|default('default') }}.error.log;
 
+{% if release_pub_dir %}
     root {{ release_pub_dir }};
+{% endif %}
     index index.php;
 
     # NOTE: if the request is over http
@@ -49,10 +51,16 @@ server {
         fastcgi_param  SSL_OFFLOADED $is_https if_not_empty;
         fastcgi_param  HTTPS         $is_https if_not_empty;
 
+{% if mage_run_code %}
         fastcgi_param  MAGE_RUN_CODE    {{ mage_run_code }};
+{% endif %}
+{% if mage_run_type %}
         fastcgi_param  MAGE_RUN_TYPE    {{ mage_run_type }};
+{% endif %}
+{% if mage_vendor_dir %}
         fastcgi_param  MAGE_VENDOR_ROOT {{ mage_vendor_dir }};
-{% if mage_dev_code == 1 %}
+{% endif %}
+{% if mage_dev_code %}
 
         fastcgi_param  MAGE_IS_DEVELOPER_MODE {{ mage_dev_code }};
 {% endif %}
